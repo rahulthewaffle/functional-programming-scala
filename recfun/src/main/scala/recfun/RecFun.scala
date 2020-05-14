@@ -48,16 +48,17 @@ object RecFun extends RecFunInterface {
    * Exercise 3
    */
   def countChange(money: Int, coins: List[Int]): Int = {
-    @scala.annotation.tailrec
-    def countChangeHelper(count: Int, denominations: List[Int]): Int =
-      if (denominations.isEmpty) count
+    def countChangeHelper(sum: Int, denominations: List[Int]): Int = {
+      if (denominations.isEmpty) 0
+      else if (sum == money) 1
+      else if (sum > money) 0
       else {
-        val increment = countChange(money - denominations.head, coins)
-        countChangeHelper(count + increment, denominations.tail)
+        val coin = denominations.head
+        val newSum = sum + coin
+        countChangeHelper(newSum, denominations) + countChangeHelper(sum, denominations.tail)
       }
+    }
 
-    if (money == 0) 1
-    else if (money < 0) 0
-    else countChangeHelper(0, coins)
+    countChangeHelper(0, coins)
   }
 }
