@@ -17,17 +17,37 @@ object RecFun extends RecFunInterface {
   def pascal(c: Int, r: Int): Int = {
     if (c > r || c < 0) 0
     else if (c == 0 || c == r) 1
-    else
-      pascal(c - 1, r - 1) + pascal(c, r - 1)
+    else pascal(c - 1, r - 1) + pascal(c, r - 1)
   }
 
   /**
    * Exercise 2
    */
-  def balance(chars: List[Char]): Boolean = ???
+
+  // test cases: '', '()', '(())', '(()', '())', ')()'
+  def balance(chars: List[Char]): Boolean = {
+    @scala.annotation.tailrec
+    def balanceHelper(count: Int, chars: List[Char]): Boolean = {
+      if (chars.isEmpty) count == 0
+      else if (count < 0)
+        false
+      else {
+        val increment =
+          if (chars.head == '(') 1
+          else if (chars.head == ')') -1
+          else 0
+
+        balanceHelper(count + increment, chars.tail)
+      }
+    }
+
+    balanceHelper(0, chars)
+  }
 
   /**
    * Exercise 3
    */
-  def countChange(money: Int, coins: List[Int]): Int = ???
+  def countChange(money: Int, coins: List[Int]): Int = {
+    ???
+  }
 }
