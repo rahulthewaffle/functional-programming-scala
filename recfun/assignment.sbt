@@ -7,3 +7,4 @@ courseraId := ch.epfl.lamp.CourseraId(
   premiumItemId = Some("Ey6Jf"),
   partId = "PzVVY"
 )
+/home/rahul/Documents/coursera/func_prog_in_scala/funsets/build.sbt
