@@ -11,7 +11,7 @@ class FunSetSuite {
 
   import FunSets._
 
-  @Test def `contains is implemented`: Unit = {
+  @Test def `contains_is_implemented`: Unit = {
     assert(contains(x => true, 100))
   }
 
@@ -44,10 +44,10 @@ class FunSetSuite {
    * This test is currently disabled (by using @Ignore) because the method
    * "singletonSet" is not yet implemented and the test would fail.
    *
-   * Once you finish your implementation of "singletonSet", remvoe the
+   * Once you finish your implementation of "singletonSet", remove the
    * @Ignore annotation.
    */
-  @Ignore("not ready yet") @Test def `singleton set one contains one`: Unit = {
+  @Test def `singleton_set_one_contains_one`: Unit = {
 
     /**
      * We create a new instance of the "TestSets" trait, this gives us access
@@ -62,7 +62,7 @@ class FunSetSuite {
     }
   }
 
-  @Test def `union contains all elements of each set`: Unit = {
+  @Test def `union_contains_all_elements_of_each_set`: Unit = {
     new TestSets {
       val s = union(s1, s2)
       assert(contains(s, 1), "Union 1")
