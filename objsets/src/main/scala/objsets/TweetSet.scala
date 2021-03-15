@@ -66,7 +66,9 @@ abstract class TweetSet extends TweetSetInterface {
    * Question: Should we implement this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def mostRetweeted: Tweet = ???
+  def mostRetweetedHelper: Tweet
+
+  def mostRetweeted: Tweet //need to figure out how to wrap this so I can elegantly throw a NoSuchElementException for calling this method on an empty set
 
   /**
    * Returns a list containing all tweets of this set, sorted by retweet count
@@ -77,7 +79,7 @@ abstract class TweetSet extends TweetSetInterface {
    * Question: Should we implement this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def descendingByRetweet: TweetList = ???
+  def descendingByRetweet: TweetList
 
   /**
    * The following methods are already implemented
@@ -112,6 +114,12 @@ class Empty extends TweetSet {
 
   def union(that: TweetSet): TweetSet = that
 
+  def mostRetweeted: Tweet = throw new NoSuchElementException("Cannot call mostRetweeted on Empty TweetSet")
+
+  def mostRetweetedHelper: Tweet = new Tweet("","",-1)
+
+  def descendingByRetweet: TweetList = Nil
+
   /**
    * The following methods are already implemented
    */
@@ -136,6 +144,21 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
     right.union(left.union(that.incl(elem)))
   }
 
+  def mostRetweetedHelper: Tweet = {
+    def maxRT(t1: Tweet, t2: Tweet): Tweet = if (t2.retweets > t1.retweets) t2 else t1
+
+    maxRT(maxRT(elem, left.mostRetweetedHelper), right.mostRetweetedHelper)
+  }
+
+  def mostRetweeted: Tweet = {
+    mostRetweetedHelper
+  }
+
+  def descendingByRetweet: TweetList = {
+    val max = mostRetweeted
+    new Cons(max, remove(max).descendingByRetweet)
+  }
+
   /**
    * The following methods are already implemented
    */
@@ -148,7 +171,7 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   def incl(x: Tweet): TweetSet = {
     if (x.text < elem.text) new NonEmpty(elem, left.incl(x), right)
     else if (elem.text < x.text) new NonEmpty(elem, left, right.incl(x))
-    else this
+    else this //no redundancy in tree
   }
 
   def remove(tw: Tweet): TweetSet =
@@ -184,7 +207,6 @@ class Cons(val head: Tweet, val tail: TweetList) extends TweetList {
   def isEmpty = false
 }
 
-
 object GoogleVsApple {
   val google = List("android", "Android", "galaxy", "Galaxy", "nexus", "Nexus")
   val apple = List("ios", "iOS", "iphone", "iPhone", "ipad", "iPad")
@@ -200,6 +222,6 @@ object GoogleVsApple {
 }
 
 object Main extends App {
-  // Print the trending tweets
+  //Print the trending tweets
   GoogleVsApple.trending foreach println
 }
