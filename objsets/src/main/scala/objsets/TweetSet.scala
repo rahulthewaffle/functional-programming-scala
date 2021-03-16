@@ -1,7 +1,5 @@
 package objsets
 
-import TweetReader._
-
 /**
  * A class to represent tweets.
  */
@@ -33,7 +31,7 @@ class Tweet(val user: String, val text: String, val retweets: Int) {
  *
  * [1] http://en.wikipedia.org/wiki/Binary_search_tree
  */
-abstract class TweetSet extends TweetSetInterface {
+sealed abstract class TweetSet extends TweetSetInterface {
 
   /**
    * This method takes a predicate and returns a subset of all the elements
@@ -42,7 +40,7 @@ abstract class TweetSet extends TweetSetInterface {
    * Question: Can we implement this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def filter(p: Tweet => Boolean): TweetSet = filterAcc(p, new Empty)
+  def filter(p: Tweet => Boolean): TweetSet = filterAcc(p, Empty)
 
   /**
    * This is a helper method for `filter` that propagates the accumulated tweets.
@@ -66,7 +64,6 @@ abstract class TweetSet extends TweetSetInterface {
    * Question: Should we implement this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def mostRetweetedHelper: Tweet
 
   def mostRetweeted: Tweet //need to figure out how to wrap this so I can elegantly throw a NoSuchElementException for calling this method on an empty set
 
@@ -109,14 +106,12 @@ abstract class TweetSet extends TweetSetInterface {
   def foreach(f: Tweet => Unit): Unit
 }
 
-class Empty extends TweetSet {
+case object Empty extends TweetSet {
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
 
   def union(that: TweetSet): TweetSet = that
 
   def mostRetweeted: Tweet = throw new NoSuchElementException("Cannot call mostRetweeted on Empty TweetSet")
-
-  def mostRetweetedHelper: Tweet = new Tweet("","",-1)
 
   def descendingByRetweet: TweetList = Nil
 
@@ -126,14 +121,14 @@ class Empty extends TweetSet {
 
   def contains(tweet: Tweet): Boolean = false
 
-  def incl(tweet: Tweet): TweetSet = new NonEmpty(tweet, new Empty, new Empty)
+  def incl(tweet: Tweet): TweetSet = NonEmpty(tweet, Empty, Empty)
 
   def remove(tweet: Tweet): TweetSet = this
 
   def foreach(f: Tweet => Unit): Unit = ()
 }
 
-class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
+case class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = {
     val newAccumulator = if (p(elem)) acc.incl(elem) else acc
@@ -144,14 +139,15 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
     right.union(left.union(that.incl(elem)))
   }
 
-  def mostRetweetedHelper: Tweet = {
+  def mostRetweeted: Tweet = {
     def maxRT(t1: Tweet, t2: Tweet): Tweet = if (t2.retweets > t1.retweets) t2 else t1
 
-    maxRT(maxRT(elem, left.mostRetweetedHelper), right.mostRetweetedHelper)
-  }
-
-  def mostRetweeted: Tweet = {
-    mostRetweetedHelper
+    (left, right) match {
+      case (Empty, Empty) => elem
+      case (_, Empty) => maxRT(elem, left.mostRetweeted)
+      case (Empty, _) => maxRT(elem, right.mostRetweeted)
+      case (_,_) => maxRT(maxRT(elem, left.mostRetweeted), right.mostRetweeted)
+    }
   }
 
   def descendingByRetweet: TweetList = {
@@ -169,14 +165,14 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
     else true
 
   def incl(x: Tweet): TweetSet = {
-    if (x.text < elem.text) new NonEmpty(elem, left.incl(x), right)
-    else if (elem.text < x.text) new NonEmpty(elem, left, right.incl(x))
+    if (x.text < elem.text) NonEmpty(elem, left.incl(x), right)
+    else if (elem.text < x.text) NonEmpty(elem, left, right.incl(x))
     else this //no redundancy in tree
   }
 
   def remove(tw: Tweet): TweetSet =
-    if (tw.text < elem.text) new NonEmpty(elem, left.remove(tw), right)
-    else if (elem.text < tw.text) new NonEmpty(elem, left, right.remove(tw))
+    if (tw.text < elem.text) NonEmpty(elem, left.remove(tw), right)
+    else if (elem.text < tw.text) NonEmpty(elem, left, right.remove(tw))
     else left.union(right)
 
   def foreach(f: Tweet => Unit): Unit = {
