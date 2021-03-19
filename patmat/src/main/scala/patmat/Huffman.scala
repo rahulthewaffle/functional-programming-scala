@@ -74,7 +74,31 @@ trait Huffman extends HuffmanInterface {
    *       println("integer is  : "+ theInt)
    *   }
    */
-  def times(chars: List[Char]): List[(Char, Int)] = ???
+  def times(chars: List[Char]): List[(Char, Int)] = {
+    /*
+    recurse over the length of chars
+    conditional flow:
+    if head is empty, do nothing
+    if head is non empty, check:
+      if return list has the character pair already, increment _2 by 1
+      if return list does not have the character pair already, create a new pair (char, 1), return pair with recursive call's return appended
+    */
+    def timesHelper(char: Char, protoCodeTree: List[(Char, Int)]): List[(Char, Int)] = {
+      protoCodeTree match {
+        case x :: xs => {
+          if (x._1 == char)
+            (char, x._2 + 1) :: xs
+          else
+            x :: timesHelper(char, xs)
+        }
+        case Nil => List((char, 1))
+      }
+    }
+    chars match {
+      case x::xs => timesHelper(x, times(xs))
+      case Nil => Nil
+    }
+  }
 
   /**
    * Returns a list of `Leaf` nodes for a given frequency table `freqs`.
