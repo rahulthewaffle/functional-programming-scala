@@ -109,7 +109,6 @@ trait Huffman extends HuffmanInterface {
    */
   def makeOrderedLeafList(freqs: List[(Char, Int)]): List[Leaf] = {
     freqs.sortWith((a,b) => a._2 < b._2).map(a => Leaf(a._1, a._2))
-//    orderedFreqs.map(a => Leaf(a._1, a._2))
   }
 
   /**
@@ -131,7 +130,13 @@ trait Huffman extends HuffmanInterface {
    * If `trees` is a list of less than two elements, that list should be returned
    * unchanged.
    */
-  def combine(trees: List[CodeTree]): List[CodeTree] = ???
+  def combine(trees: List[CodeTree]): List[CodeTree] = {
+    trees match{
+      case x::Nil => List(x)
+      case x::y::xs => makeCodeTree(x,y)::xs.sortWith((a,b) => weight(a) < weight(b))
+      case Nil => Nil
+    }
+  }
 
   /**
    * This function will be called in the following way:
@@ -144,7 +149,12 @@ trait Huffman extends HuffmanInterface {
    * In such an invocation, `until` should call the two functions until the list of
    * code trees contains only one single tree, and then return that singleton list.
    */
-  def until(done: List[CodeTree] => Boolean, merge: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] = ???
+  def until(done: List[CodeTree] => Boolean, merge: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] = {
+    if (!done(trees))
+      until(done, merge)(merge(trees))
+    else
+      trees
+  }
 
   /**
    * This function creates a code tree which is optimal to encode the text `chars`.
@@ -152,7 +162,11 @@ trait Huffman extends HuffmanInterface {
    * The parameter `chars` is an arbitrary text. This function extracts the character
    * frequencies from that text and creates a code tree based on them.
    */
-  def createCodeTree(chars: List[Char]): CodeTree = ???
+  def createCodeTree(chars: List[Char]): CodeTree = {
+    val freqs = times(chars)
+    val orderedLeafFreqs = makeOrderedLeafList(freqs)
+    until(singleton, combine)(orderedLeafFreqs)(0)
+  }
 
 
   // Part 3: Decoding
@@ -163,7 +177,30 @@ trait Huffman extends HuffmanInterface {
    * This function decodes the bit sequence `bits` using the code tree `tree` and returns
    * the resulting list of characters.
    */
-  def decode(tree: CodeTree, bits: List[Bit]): List[Char] = ???
+  def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
+    def decodeHelper(cur:CodeTree, tree:CodeTree, bits: List[Bit]): List[Char] ={
+      cur match{
+        case Leaf(char,_) => char::decodeHelper(tree, tree, bits)
+        case Fork(left, right,_,_) => {
+          bits match {
+            case Nil => Nil
+            case x::xs if x==0 => decodeHelper(left, tree, xs)
+            case x::xs if x==1 => decodeHelper(right, tree, xs)
+          }
+        }
+      }
+    }
+
+    tree match {
+      case Leaf(char, weight) => for (i <- (1 to weight).toList) yield char
+      case Fork(_,_,_,_) => {
+            bits match {
+              case Nil => Nil
+              case _ => decodeHelper(tree, tree, bits)
+            }
+      }
+    }
+  }
 
   /**
    * A Huffman coding tree for the French language.
@@ -181,7 +218,7 @@ trait Huffman extends HuffmanInterface {
   /**
    * Write a function that returns the decoded secret
    */
-  def decodedSecret: List[Char] = ???
+  def decodedSecret: List[Char] = decode(frenchCode, secret)
 
 
   // Part 4a: Encoding using Huffman tree
@@ -190,7 +227,11 @@ trait Huffman extends HuffmanInterface {
    * This function encodes `text` using the code tree `tree`
    * into a sequence of bits.
    */
-  def encode(tree: CodeTree)(text: List[Char]): List[Bit] = ???
+  def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
+
+
+    ???
+  }
 
   // Part 4b: Encoding using code table
 
