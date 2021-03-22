@@ -178,14 +178,14 @@ trait Huffman extends HuffmanInterface {
    * the resulting list of characters.
    */
   def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
-    def decodeHelper(cur:CodeTree, tree:CodeTree, bits: List[Bit]): List[Char] ={
+    def decodeHelper(cur:CodeTree, bits: List[Bit]): List[Char] ={
       cur match{
-        case Leaf(char,_) => char::decodeHelper(tree, tree, bits)
+        case Leaf(char,_) => char::decodeHelper(tree, bits)
         case Fork(left, right,_,_) => {
           bits match {
             case Nil => Nil
-            case x::xs if x==0 => decodeHelper(left, tree, xs)
-            case x::xs if x==1 => decodeHelper(right, tree, xs)
+            case x::xs if x==0 => decodeHelper(left, xs)
+            case x::xs if x==1 => decodeHelper(right, xs)
           }
         }
       }
@@ -196,7 +196,7 @@ trait Huffman extends HuffmanInterface {
       case Fork(_,_,_,_) => {
             bits match {
               case Nil => Nil
-              case _ => decodeHelper(tree, tree, bits)
+              case _ => decodeHelper(tree, bits)
             }
       }
     }
@@ -228,7 +228,7 @@ trait Huffman extends HuffmanInterface {
    * into a sequence of bits.
    */
   def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
-
+    def encodeHelper(): List[Bit] = ???
 
     ???
   }
