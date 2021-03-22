@@ -35,7 +35,7 @@ trait Huffman extends HuffmanInterface {
     }
   } // tree match ...
 
-  def makeCodeTree(left: CodeTree, right: CodeTree) =
+  def makeCodeTree(left: CodeTree, right: CodeTree): Fork =
     Fork(left, right, chars(left) ::: chars(right), weight(left) + weight(right))
 
   // Part 2: Generating Huffman trees
@@ -85,12 +85,11 @@ trait Huffman extends HuffmanInterface {
     */
     def timesHelper(char: Char, protoCodeTree: List[(Char, Int)]): List[(Char, Int)] = {
       protoCodeTree match {
-        case x :: xs => {
+        case x :: xs =>
           if (x._1 == char)
             (char, x._2 + 1) :: xs
           else
             x :: timesHelper(char, xs)
-        }
         case Nil => List((char, 1))
       }
     }
@@ -165,7 +164,7 @@ trait Huffman extends HuffmanInterface {
   def createCodeTree(chars: List[Char]): CodeTree = {
     val freqs = times(chars)
     val orderedLeafFreqs = makeOrderedLeafList(freqs)
-    until(singleton, combine)(orderedLeafFreqs)(0)
+    until(singleton, combine)(orderedLeafFreqs).head
   }
 
 
@@ -181,24 +180,22 @@ trait Huffman extends HuffmanInterface {
     def decodeHelper(cur:CodeTree, bits: List[Bit]): List[Char] ={
       cur match{
         case Leaf(char,_) => char::decodeHelper(tree, bits)
-        case Fork(left, right,_,_) => {
+        case Fork(left, right,_,_) =>
           bits match {
             case Nil => Nil
             case x::xs if x==0 => decodeHelper(left, xs)
             case x::xs if x==1 => decodeHelper(right, xs)
           }
-        }
       }
     }
 
     tree match {
       case Leaf(char, weight) => for (i <- (1 to weight).toList) yield char
-      case Fork(_,_,_,_) => {
-            bits match {
-              case Nil => Nil
-              case _ => decodeHelper(tree, bits)
-            }
-      }
+      case Fork(_,_,_,_) =>
+        bits match {
+          case Nil => Nil
+          case _ => decodeHelper(tree, bits)
+        }
     }
   }
 
@@ -211,7 +208,7 @@ trait Huffman extends HuffmanInterface {
 
   /**
    * What does the secret message say? Can you decode it?
-   * For the decoding use the `frenchCode' Huffman tree defined above.
+   * For the decoding use the 'frenchCode' Huffman tree defined above.
    */
   val secret: List[Bit] = List(0,0,1,1,1,0,1,0,1,1,1,0,0,1,1,0,1,0,0,1,1,0,1,0,1,1,0,0,1,1,1,1,1,0,1,0,1,1,0,0,0,0,1,0,1,1,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1)
 
@@ -228,9 +225,19 @@ trait Huffman extends HuffmanInterface {
    * into a sequence of bits.
    */
   def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
-    def encodeHelper(): List[Bit] = ???
+    def encodeHelper(char: Char, current: CodeTree = tree): List[Bit] = {
+      current match {
+        case Fork(left, right,_,_) =>
+          if (chars(left).contains(char)) 0::encodeHelper(char, left)
+          else 1::encodeHelper(char, right)
+        case Leaf(_,_) => Nil
+      }
+    }
 
-    ???
+    text match {
+      case x::xs => encodeHelper(x):::encode(tree)(xs)
+      case _ => Nil
+    }
   }
 
   // Part 4b: Encoding using code table
@@ -241,7 +248,14 @@ trait Huffman extends HuffmanInterface {
    * This function returns the bit sequence that represents the character `char` in
    * the code table `table`.
    */
-  def codeBits(table: CodeTable)(char: Char): List[Bit] = ???
+  def codeBits(table: CodeTable)(char: Char): List[Bit] = {
+    table match {
+      case x::xs =>
+        if (x._1 == char) x._2
+        else codeBits(xs)(char)
+      case _ => Nil
+    }
+  }
 
   /**
    * Given a code tree, create a code table which contains, for every character in the
