@@ -37,7 +37,7 @@ class HuffmanSuite {
 
 
   @Test def `combine of some leaf list (15pts)`: Unit = {
-    val leaflist = List(Leaf('e', 1), Leaf('t', 2), Leaf('x', 4))
+    val leaflist = List(Leaf('t', 2), Leaf('e', 1), Leaf('x', 4))
     assertEquals(List(Fork(Leaf('e',1),Leaf('t',2),List('e', 't'),3), Leaf('x',4)), combine(leaflist))
   }
 

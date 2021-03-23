@@ -130,8 +130,15 @@ trait Huffman extends HuffmanInterface {
    * unchanged.
    */
   def combine(trees: List[CodeTree]): List[CodeTree] = {
+    def orderedInsert(node: CodeTree, trees: List[CodeTree]): List[CodeTree] = {
+      trees match {
+        case x::xs => if (weight(node) <= weight(x)) node::x::xs else x::orderedInsert(node, xs)
+        case Nil => node::Nil
+      }
+    }
+
     trees match{
-      case x::y::xs => (makeCodeTree(x,y)::xs).sortWith((a,b) => weight(a) < weight(b))
+      case x::y::xs => if (weight(x) < weight(y)) orderedInsert(makeCodeTree(x,y), xs) else orderedInsert(makeCodeTree(y,x), xs) /*.sortWith((a,b) => weight(a) < weight(b))*/
       case _ => trees
     }
   }
