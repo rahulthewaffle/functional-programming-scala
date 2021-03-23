@@ -276,10 +276,6 @@ trait Huffman extends HuffmanInterface {
     }
     tree match {
       case Fork(_,_,_,_) => chars(tree).map(x => (x, convertHelper(x, tree)))
-/*        allChars match {
-          case x::xs => (x, convertHelper(x, tree))::convert(tree)
-          case _ => Nil
-        }*/
       case Leaf(_,_) => Nil
     }
   }
