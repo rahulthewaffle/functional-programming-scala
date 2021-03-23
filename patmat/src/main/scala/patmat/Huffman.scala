@@ -100,14 +100,14 @@ trait Huffman extends HuffmanInterface {
   }
 
   /**
-   * Returns a list of `Leaf` nodes for a given frequency table `freqs`.
+   * Returns a list of `Leaf` nodes for a given frequency table `frequencies`.
    *
    * The returned list should be ordered by ascending weights (i.e. the
    * head of the list should have the smallest weight), where the weight
    * of a leaf is the frequency of the character.
    */
-  def makeOrderedLeafList(freqs: List[(Char, Int)]): List[Leaf] = {
-    freqs.sortWith((a,b) => a._2 < b._2).map(a => Leaf(a._1, a._2))
+  def makeOrderedLeafList(frequencies: List[(Char, Int)]): List[Leaf] = {
+    frequencies.sortWith((a,b) => a._2 < b._2).map(a => Leaf(a._1, a._2))
   }
 
   /**
@@ -162,8 +162,8 @@ trait Huffman extends HuffmanInterface {
    * frequencies from that text and creates a code tree based on them.
    */
   def createCodeTree(chars: List[Char]): CodeTree = {
-    val freqs = times(chars)
-    val orderedLeafFreqs = makeOrderedLeafList(freqs)
+    val frequencies = times(chars)
+    val orderedLeafFreqs = makeOrderedLeafList(frequencies)
     until(singleton, combine)(orderedLeafFreqs).head
   }
 
@@ -177,8 +177,8 @@ trait Huffman extends HuffmanInterface {
    * the resulting list of characters.
    */
   def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
-    def decodeHelper(cur:CodeTree, bits: List[Bit]): List[Char] ={
-      cur match{
+    def decodeHelper(cursor:CodeTree, bits: List[Bit]): List[Char] ={
+      cursor match{
         case Leaf(char,_) => char::decodeHelper(tree, bits)
         case Fork(left, right,_,_) =>
           bits match {
@@ -225,8 +225,8 @@ trait Huffman extends HuffmanInterface {
    * into a sequence of bits.
    */
   def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
-    def encodeHelper(char: Char, current: CodeTree = tree): List[Bit] = {
-      current match {
+    def encodeHelper(char: Char, cursor: CodeTree = tree): List[Bit] = {
+      cursor match {
         case Fork(left, right,_,_) =>
           if (chars(left).contains(char)) 0::encodeHelper(char, left)
           else 1::encodeHelper(char, right)
@@ -265,7 +265,24 @@ trait Huffman extends HuffmanInterface {
    * a valid code tree that can be represented as a code table. Using the code tables of the
    * sub-trees, think of how to build the code table for the entire tree.
    */
-  def convert(tree: CodeTree): CodeTable = ???
+  def convert(tree: CodeTree): CodeTable = {
+    def convertHelper(char:Char, cursor: CodeTree): List[Bit] = {
+      cursor match {
+        case Fork(left, right,_,_) =>
+          if (chars(left).contains(char)) 0::convertHelper(char, left)
+          else 1::convertHelper(char, right)
+        case Leaf(_,_) => Nil
+      }
+    }
+    tree match {
+      case Fork(_,_,_,_) => chars(tree).map(x => (x, convertHelper(x, tree)))
+/*        allChars match {
+          case x::xs => (x, convertHelper(x, tree))::convert(tree)
+          case _ => Nil
+        }*/
+      case Leaf(_,_) => Nil
+    }
+  }
 
   /**
    * This function takes two code tables and merges them into one. Depending on how you
