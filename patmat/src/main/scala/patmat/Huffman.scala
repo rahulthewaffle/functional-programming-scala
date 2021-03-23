@@ -131,9 +131,8 @@ trait Huffman extends HuffmanInterface {
    */
   def combine(trees: List[CodeTree]): List[CodeTree] = {
     trees match{
-      case x::Nil => List(x)
-      case x::y::xs => makeCodeTree(x,y)::xs.sortWith((a,b) => weight(a) < weight(b))
-      case Nil => Nil
+      case x::y::xs => (makeCodeTree(x,y)::xs).sortWith((a,b) => weight(a) < weight(b))
+      case _ => trees
     }
   }
 
@@ -149,10 +148,10 @@ trait Huffman extends HuffmanInterface {
    * code trees contains only one single tree, and then return that singleton list.
    */
   def until(done: List[CodeTree] => Boolean, merge: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] = {
-    if (!done(trees))
-      until(done, merge)(merge(trees))
-    else
+    if (done(trees))
       trees
+    else
+      until(done, merge)(merge(trees))
   }
 
   /**
@@ -162,9 +161,7 @@ trait Huffman extends HuffmanInterface {
    * frequencies from that text and creates a code tree based on them.
    */
   def createCodeTree(chars: List[Char]): CodeTree = {
-    val frequencies = times(chars)
-    val orderedLeafFreqs = makeOrderedLeafList(frequencies)
-    until(singleton, combine)(orderedLeafFreqs).head
+    until(singleton, combine)(makeOrderedLeafList(times(chars))).head
   }
 
 

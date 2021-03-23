@@ -1,7 +1,7 @@
 package patmat
 
 import org.junit._
-import org.junit.Assert.assertEquals
+import org.junit.Assert.{assertEquals, assertFalse}
 
 class HuffmanSuite {
   import Huffman._
@@ -26,6 +26,11 @@ class HuffmanSuite {
   @Test def `string2chars hello world`: Unit =
     assertEquals(List('h', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd'), string2Chars("hello, world"))
 
+  @Test def `times hello`: Unit = {
+    val result = times(List('h', 'e', 'l', 'l', 'o'))
+    print(result)
+    assertEquals(List(('e',1), ('h',1), ('l',2), ('o',1)), result.sortWith((a,b) => a._1 < b._1))
+  }
 
   @Test def `make ordered leaf list for some frequency table (15pts)`: Unit =
     assertEquals(List(Leaf('e',1), Leaf('t',2), Leaf('x',3)), makeOrderedLeafList(List(('t', 2), ('e', 1), ('x', 3))))
@@ -34,6 +39,16 @@ class HuffmanSuite {
   @Test def `combine of some leaf list (15pts)`: Unit = {
     val leaflist = List(Leaf('e', 1), Leaf('t', 2), Leaf('x', 4))
     assertEquals(List(Fork(Leaf('e',1),Leaf('t',2),List('e', 't'),3), Leaf('x',4)), combine(leaflist))
+  }
+
+
+  @Test def `singleton true test`: Unit = {
+    assert(singleton(List(Leaf('a',1))))
+  }
+
+
+  @Test def `singleton false test`: Unit = {
+    assertFalse(singleton(List(Leaf('a',1), Leaf('b', 2))))
   }
 
 
